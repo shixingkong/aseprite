@@ -1,39 +1,39 @@
 name: Build Aseprite
-on: [push, workflow_dispatch]
+on: [push, workflow_dispatch]  # 手动触发或代码推送时运行
 
 jobs:
   build:
-    runs-on: windows-latest  # 系统环境（可选 macos-latest/ubuntu-latest）
+    runs-on: windows-latest    # 系统环境（可选 macos-latest/ubuntu-latest）
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive  # 包含子模块（如 Skia）
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # 包含子模块（如 Skia）
 
-    - name: 设置编译环境
-      uses: ilammy/msvc-dev-cmd@v1  # Windows 需 MSVC 编译器
+      - name: 设置编译环境（Windows）
+        uses: ilammy/msvc-dev-cmd@v1  # Windows 需 MSVC 编译器
 
-    - name: 下载 Skia 库
-      run: |
-        curl -L https://github.com/blueloveTH/aseprite/releases/download/v0.01/skia.zip -o skia.zip
-        7z x skia.zip
+      - name: 下载 Skia 库
+        run: |
+          curl -L https://github.com/blueloveTH/aseprite/releases/download/v0.01/skia.zip -o skia.zip
+          7z x skia.zip -oskia
 
-    - name: 生成构建文件
-      run: |
-        cmake -S . -B build -G Ninja ^
-          -DCMAKE_BUILD_TYPE=Release ^
-          -DENABLE_UI=ON ^
-          -DLAF_BACKEND=skia ^
-          -DSKIA_DIR=$PWD/skia ^
-          -DSKIA_LIBRARY_DIR=$PWD/skia/out/Release-x64
+      - name: 生成构建文件
+        run: |
+          cmake -S . -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DENABLE_UI=ON ^
+            -DLAF_BACKEND=skia ^
+            -DSKIA_DIR=$PWD/skia ^
+            -DSKIA_LIBRARY_DIR=$PWD/skia/out/Release-x64
 
-    - name: 编译
-      run: cd build && ninja aseprite
+      - name: 编译
+        run: cd build && ninja aseprite
 
-    - name: 打包成品
-      uses: actions/upload-artifact@v3
-      with:
-        name: aseprite
-        path: |
-          build/bin/aseprite.exe
-          build/bin/data/*
+      - name: 打包成品
+        uses: actions/upload-artifact@v4  # 使用 v4 替代弃用的 v3
+        with:
+          name: aseprite
+          path: |
+            build/bin/aseprite.exe
+            build/bin/data/*
