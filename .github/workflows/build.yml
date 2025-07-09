@@ -1,37 +1,48 @@
 name: Build Aseprite
-on: [push, workflow_dispatch]  # 手动触发或代码推送时运行
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: windows-latest    # 系统环境（可选 macos-latest/ubuntu-latest）
+    runs-on: windows-latest
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # 包含子模块（如 Skia）
+          submodules: recursive  # 必须包含子模块
 
-      - name: 设置编译环境（Windows）
-        uses: ilammy/msvc-dev-cmd@v1  # Windows 需 MSVC 编译器
-
-      - name: 下载 Skia 库
+      - name: 安装依赖工具
         run: |
+          choco install 7zip ninja -y --no-progress
+
+      - name: 下载 Skia 和 libjpeg-turbo
+        shell: bash
+        run: |
+          # 下载 Skia
           curl -L https://github.com/blueloveTH/aseprite/releases/download/v0.01/skia.zip -o skia.zip
           7z x skia.zip -oskia
 
+          # 手动安装 libjpeg-turbo
+          mkdir -p third_party/externals/libjpeg-turbo
+          curl -L https://sourceforge.net/projects/libjpeg-turbo/files/2.1.5/libjpeg-turbo-2.1.5-vc64.exe/download -o libjpeg-turbo.exe
+          ./libjpeg-turbo.exe /S /D=$PWD/third_party/externals/libjpeg-turbo
+
       - name: 生成构建文件
+        shell: bash
         run: |
-          cmake -S . -B build -G Ninja ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            -DENABLE_UI=ON ^
-            -DLAF_BACKEND=skia ^
-            -DSKIA_DIR=$PWD/skia ^
-            -DSKIA_LIBRARY_DIR=$PWD/skia/out/Release-x64
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_UI=ON \
+            -DLAF_BACKEND=skia \
+            -DSKIA_DIR=$PWD/skia \
+            -DSKIA_LIBRARY_DIR=$PWD/skia/out/Release-x64 \
+            -DJPEG_LIBRARY=$PWD/third_party/externals/libjpeg-turbo/lib/jpeg-static.lib \
+            -DJPEG_INCLUDE_DIR=$PWD/third_party/externals/libjpeg-turbo/include
 
       - name: 编译
-        run: cd build && ninja aseprite
+        run: cd build && ninja
 
       - name: 打包成品
-        uses: actions/upload-artifact@v4  # 使用 v4 替代弃用的 v3
+        uses: actions/upload-artifact@v4
         with:
           name: aseprite
           path: |
