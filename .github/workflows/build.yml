@@ -22,7 +22,8 @@ jobs:
 
           # 安装本地 libjpeg-turbo
           mkdir -p third_party/externals/libjpeg-turbo
-          ./deps/libjpeg-turbo.exe /S /D=$PWD/third_party/externals/libjpeg-turbo
+          chmod +x deps/libjpeg-turbo-2.1.5-vc64.exe  # 确保可执行权限
+          ./deps/libjpeg-turbo-2.1.5-vc64.exe /S /D=$PWD/third_party/externals/libjpeg-turbo
 
       - name: 生成构建文件
         shell: bash
