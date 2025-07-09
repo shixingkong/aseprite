@@ -17,14 +17,12 @@ jobs:
       - name: 下载 Skia 和 libjpeg-turbo
         shell: bash
         run: |
-          # 下载 Skia
-          curl -L https://github.com/blueloveTH/aseprite/releases/download/v0.01/skia.zip -o skia.zip
-          7z x skia.zip -oskia
+          # 解压本地 skia.zip
+          7z x deps/skia.zip -oskia
 
-          # 手动安装 libjpeg-turbo
+          # 安装本地 libjpeg-turbo
           mkdir -p third_party/externals/libjpeg-turbo
-          curl -L https://sourceforge.net/projects/libjpeg-turbo/files/2.1.5/libjpeg-turbo-2.1.5-vc64.exe/download -o libjpeg-turbo.exe
-          ./libjpeg-turbo.exe /S /D=$PWD/third_party/externals/libjpeg-turbo
+          ./deps/libjpeg-turbo.exe /S /D=$PWD/third_party/externals/libjpeg-turbo
 
       - name: 生成构建文件
         shell: bash
